@@ -172,6 +172,7 @@ namespace RPN.Logic
                     continue;
                 }
 
+                if (s == "x") tokens.Add(new Variable());
                 if (s == "(") tokens.Add(new Parenthesis(isOpening: true));
                 if (s == ")") tokens.Add(new Parenthesis(isOpening: false));
                 if (s == "+") tokens.Add(new Operation("+"));
@@ -189,9 +190,17 @@ namespace RPN.Logic
     public class RPNcalculator
     {
         string expression;
+        double VariableX;
+
         public RPNcalculator (string expression)
         {
             this.expression = expression;
+        }
+
+        public RPNcalculator (string expression, double variableX)
+        {
+            this.expression = expression;
+            this.VariableX = variableX;
         }
 
         public double Calculate()
@@ -208,7 +217,7 @@ namespace RPN.Logic
 
             foreach (Token token in expression)
             {
-                if (token.GetType() == typeof(Number) | token.GetType() == typeof(Function))
+                if (token.GetType() == typeof(Number) | token.GetType() == typeof(Function) | token.GetType() == typeof(Variable))
                 {
                     expressionInRPN.Add(token);
                 }
@@ -302,17 +311,21 @@ namespace RPN.Logic
             return new Number(result);
         }
 
-        static private double CalculateRPNExpression(List<Token> RPNexpression)
+        private double CalculateRPNExpression(List<Token> RPNexpression)
         {
             int counter = 0;
             Stack<Number> stack = new Stack<Number>();
             foreach (Token token in RPNexpression)
             {
-                if (token.GetType() == typeof(Number) | token.GetType() == typeof(Function))
+                if (token.GetType() == typeof(Number) | token.GetType() == typeof(Function) | token.GetType() == typeof(Variable))
                 {
                     if (token.GetType() == typeof(Number))
                     {
                         stack.Push((Number)token);
+                    }
+                    else if (token.GetType() == typeof(Variable))
+                    {
+                        stack.Push(new Number(this.VariableX));
                     }
                     else
                     {
