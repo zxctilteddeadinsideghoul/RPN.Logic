@@ -190,24 +190,17 @@ namespace RPN.Logic
     public class RPNcalculator
     {
         string expression;
-        double VariableX;
 
         public RPNcalculator (string expression)
         {
             this.expression = expression;
         }
 
-        public RPNcalculator (string expression, double variableX)
-        {
-            this.expression = expression;
-            this.VariableX = variableX;
-        }
-
-        public double Calculate()
+        public double Calculate(double VariableX=1)
         {
             List<Token> tokens = new Tokenizer(this.expression).Tokenize();
             tokens = ConvertToRPN(tokens);
-            return CalculateRPNExpression(tokens);
+            return CalculateRPNExpression(tokens, VariableX);
         }
 
         static List<Token> ConvertToRPN(List<Token> expression)
@@ -281,14 +274,11 @@ namespace RPN.Logic
             return result;
         }
 
-        private static Number CalculateFunction(Function fn)
+        private static Number CalculateFunction(Function fn, double VariableX)
         {
             double result = 0;
-            //List<Token> tokens = RPNcalculator.ConvertToRPN(new Tokenizer(fn.firstExpression).Tokenize());
-            //double first = RPNcalculator.CalculateRPNExpression(tokens);
-            double first = new RPNcalculator(fn.firstExpression).Calculate();
-            //tokens = RPNcalculator.ConvertToRPN(Tokenizer.Tokenize(fn.secondExpression));
-            double second = new RPNcalculator(fn.secondExpression).Calculate();
+            double first = new RPNcalculator(fn.firstExpression).Calculate(VariableX);
+            double second = new RPNcalculator(fn.secondExpression).Calculate(VariableX);
 
             switch (fn.name)
             {
@@ -307,11 +297,17 @@ namespace RPN.Logic
                 case "cos":
                     result = Math.Cos(first);
                     break;
+                case "tg":
+                    result = Math.Tan(first);
+                    break;
+                case "ctg":
+                    result = 1 / Math.Tan(first);
+                    break;
             }
             return new Number(result);
         }
 
-        private double CalculateRPNExpression(List<Token> RPNexpression)
+        private static double CalculateRPNExpression(List<Token> RPNexpression, double VariableX)
         {
             int counter = 0;
             Stack<Number> stack = new Stack<Number>();
@@ -325,11 +321,11 @@ namespace RPN.Logic
                     }
                     else if (token.GetType() == typeof(Variable))
                     {
-                        stack.Push(new Number(this.VariableX));
+                        stack.Push(new Number(VariableX));
                     }
                     else
                     {
-                        stack.Push(CalculateFunction((Function)token));
+                        stack.Push(CalculateFunction((Function)token, VariableX));
                     }
                 }
                 else if (token.GetType() == typeof(Operation))
